@@ -133,7 +133,7 @@
         var statistics_log;
         d3.select("#do_statistics").on('click',()=>{
             d3.select(`#the-textarea`).each(function(e, i) {the_text = this.value;});
-            statistics_log = string_statistics(the_text,2,8);
+            statistics_log = string_statistics(the_text,1,8);
         });
     </script>
 

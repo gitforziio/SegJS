@@ -30,7 +30,7 @@ function string_statistics(txt, minwidth, maxwidth, dict) {
         frequency: 0,
     }];
     var txt = arguments[0] ? arguments[0] : '';
-    var minwidth = arguments[1] ? arguments[1] : 2;
+    var minwidth = arguments[1] ? arguments[1] : 1;
     var maxwidth = arguments[2] ? arguments[2] : (minwidth>2 ? minwidth : 2);
     var dict = arguments[3] ? arguments[3] : DefultDICT;
 
