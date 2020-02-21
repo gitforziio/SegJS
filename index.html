@@ -124,7 +124,7 @@
     <!-- <script src="lodash.js"></script> -->
 
     <script type="text/javascript" src="js/FileSaver.js"></script>
-    <script type="text/javascript" src="js/seg.js"></script>
+    <!-- <script type="text/javascript" src="js/seg.js"></script> -->
     <!-- <script type="text/javascript" src="js/main.js"></script> -->
 
 
@@ -133,7 +133,23 @@
         var statistics_log;
         d3.select("#do_statistics").on('click',()=>{
             d3.select(`#the-textarea`).each(function(e, i) {the_text = this.value;});
-            statistics_log = string_statistics(the_text,1,8);
+
+            // statistics_log = string_statistics(the_text,1,18);
+            if(typeof(myWorker)=="undefined") {
+                myWorker = new Worker("js/seg.js");
+                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:18, expwin:null, dict:null});
+                console.log("开始统计，请耐心等待……");
+            } else {
+                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:18, expwin:null, dict:null});
+                console.log("开始统计，请耐心等待……");
+                // console.log("别急，有任务正在进行！");
+            }
+            myWorker.onmessage = function (event) {
+                console.log(event.data);
+                // doSomething();
+                console.log("统计完毕！");
+                // myWorker.terminate();
+            }
         });
     </script>
 
