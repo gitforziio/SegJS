@@ -74,7 +74,7 @@
         </div>
     </div></div>
 
-    <div class="container my-5 page hiddent" id="page-import"><div class="container py-2">
+    <!-- <div class="container my-5 page hiddent" id="page-import"><div class="container py-2">
         <div class="row">
             <div class="col">
                 <form name="file-form" class="container">
@@ -90,7 +90,7 @@
                 </form>
             </div>
         </div>
-    </div></div>
+    </div></div> -->
 
     <div class="container my-5 page hiddent" id="page-output"><div class="container py-5">
         <div class="row">
@@ -100,7 +100,7 @@
         </div>
     </div></div>
 
-    <div class="container my-5 page hiddent" id="page-editing"><div class="container py-5"><div id="box-editing"><sentence-control v-for="S in Ss" :key="S.id" :S="S"></sentence-control>
+    <!-- <div class="container my-5 page hiddent" id="page-editing"><div class="container py-5"><div id="box-editing"><sentence-control v-for="S in Ss" :key="S.id" :S="S"></sentence-control>
     </div></div></div>
 
     <div class="container my-5 page hiddent" id="page-main"><div class="container py-5">
@@ -109,7 +109,7 @@
                 <div id="xml"></div>
             </div>
         </div>
-    </div></div>
+    </div></div> -->
 
 </div>
 
@@ -149,7 +149,10 @@
             myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
             time_start = _.now();
             var the_text_len = the_text.replace(/([\n\r\s\t]+)/g,' ').trim().length;
-            console.log(`文本长度：【${the_text_len}】；现在是【${time_start}】；开始统计，请耐心等待……`);
+            var msg1 = `文本长度：【${the_text_len}】；现在是【${time_start}】；开始统计，请耐心等待……`;
+            console.log(msg1);
+            d3.selectAll(`#output *`).remove();
+            d3.select(`#output`).append("p").text(`${msg1}`);
             myWorker.onmessage = function (event) {
                 if (event.data.stage=='result') {
                     var time_end = _.now();
@@ -158,12 +161,18 @@
                     data = event.data.data;
                     console.log(data);
                     var jjj = JSON.stringify(data);
+                    var jjjjj = _.forEach(data.wordDict,(d,i)=>{data.wordDict[i]=data.wordDict[i]['str']}).join('\n');
+                    d3.selectAll(`#output *`).remove();
                     d3.select(`#output`).append("textarea").classed("form-control",true).text(jjj);
+                    d3.select(`#output`).append("textarea").classed("form-control",true).text(jjjjj);
                     // myWorker.terminate();
                 } else {
+                    // d3.selectAll(`#output *`).remove();
                     console.log(`【stage: ${event.data.stage}】`);
+                    d3.select(`#output`).append("p").text(`【当前阶段】：【${event.data.stage}】；请耐心等待……`);
                     data = event.data.data;
                     console.log(data);
+                    // d3.select(`#output`).append("p").text(`【内容】：【${data}】`);
                 }
             };
             myWorker.onerror = function (e) {
