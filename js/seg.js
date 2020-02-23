@@ -117,7 +117,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     strDict = _.orderBy(strDict, ['str_frq','sxl_pct','t_l_pct','sxr_pct','t_r_pct','str','str_len'], ['desc','asc','desc','asc','desc','asc','desc']);
 
     wordDict = _.filter(strDict, function(d) { return d.str_len>1&&d.sxl_pct<0.5&&d.sxr_pct<0.5&&d.t_l_pct>0.3&&d.t_r_pct>0.3&&d.sxl_pct!=0&&d.sxr_pct!=0; });
-    wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.sxr_pct}※${d.t_l_pct}※${d.t_r_pct}`);
+    wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.t_l_pct}※${d.t_r_pct}`);
 
 
 
