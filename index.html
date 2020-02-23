@@ -34,6 +34,7 @@
         /*#page-ctrl>.container>.row>.col>*{margin: 0.25rem 0;}*/
         .outputbox{font-size: 10px;}
         #the-textarea{font-size: 10px;}
+        #output .form-control{font-size: 10px;}
     </style>
 
 
@@ -161,10 +162,11 @@
                     data = event.data.data;
                     console.log(data);
                     var jjj = JSON.stringify(data);
-                    var jjjjj = _.forEach(data.wordDict,(d,i)=>{data.wordDict[i]=data.wordDict[i]['str']}).join('\n');
+                    var wD = _.cloneDeep(data.wordDict);
+                    var jjjjj = _.forEach(wD,(d,i)=>{wD[i]=wD[i]['str']}).join('\n');
                     d3.selectAll(`#output *`).remove();
-                    d3.select(`#output`).append("textarea").classed("form-control",true).text(jjj);
-                    d3.select(`#output`).append("textarea").classed("form-control",true).text(jjjjj);
+                    d3.select(`#output`).append("textarea").classed("form-control",true).attr("rows","10").text(jjj);
+                    d3.select(`#output`).append("textarea").classed("form-control",true).attr("rows","40").text(jjjjj);
                     // myWorker.terminate();
                 } else {
                     // d3.selectAll(`#output *`).remove();
