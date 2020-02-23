@@ -148,10 +148,11 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     postMessage({stage:"strDict",data:`strDict`});
     // postMessage({stage:"strDict",data:strDict});
 
+    let vvv0 = 3;
     let vvv1 = 0.6;
     let vvv2 = 0.15;
 
-    wordDict = _.filter(strDict, function(d) { return d.str_len>1&&d.sxl_pct<vvv1&&d.sxr_pct<vvv1&&d.t_l_pct>vvv2&&d.t_r_pct>vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0; });
+    wordDict = _.filter(strDict, function(d) { return (d.str_len>1&&d.str_frq>=vvv0&&d.sxl_pct<vvv1&&d.sxr_pct<vvv1&&d.t_l_pct>vvv2&&d.t_r_pct>vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
     // wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.t_l_pct}※${d.t_r_pct}`);
     wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
 
