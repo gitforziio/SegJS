@@ -139,6 +139,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
         // counts: counts,
         // counts1: counts1,
         // reduDict: reduDict,
+        txt_length: txt_length,
     };
 
     return log;

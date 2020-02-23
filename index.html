@@ -139,24 +139,29 @@
         var result;
         d3.select("#do_statistics").on('click',()=>{
             d3.select(`#the-textarea`).each(function(e, i) {the_text = this.value;});
+            console.log(" ");
 
             // statistics_log = string_statistics(the_text,1,18);
             if(typeof(myWorker)=="undefined") {
                 myWorker = new Worker("js/seg.js");
-                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
-                console.log("开始统计，请耐心等待……");
-            } else {
-                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
-                console.log("开始统计，请耐心等待……");
-                // console.log("别急，有任务正在进行！");
             };
+            myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
+            var time_start = _.now();
+            var the_text_len = the_text.replace(/([\n\r\s\t]+)/g,' ').trim().length;
+            console.log(`文本长度：${the_text_len}`);
+            // console.log(time_start);
+            console.log("开始统计，请耐心等待……");
             myWorker.onmessage = function (event) {
                 result = event.data;
                 console.log(result);
                 var jjj = JSON.stringify(result);
                 d3.select(`#output`).append("textarea").classed("form-control",true).text(jjj);
                 // doSomething();
-                // console.log("统计完毕！");
+                console.log("统计完毕！");
+                var time_end = _.now();
+                // console.log(time_end);
+                console.log(`共耗时：${_.ceil((time_end-time_start)/1000,0)} 秒`);
+                console.log(`均耗时：${_.ceil(the_text_len/(time_end-time_start)*1000,2)} 字符/秒`);
                 // myWorker.terminate();
             };
             myWorker.onerror = function (e) {
