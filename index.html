@@ -57,10 +57,13 @@
             <div class="col">
                 <div id="the-textarea-wrap">
                     <textarea class="form-control" id="the-textarea" rows="10">
+1，2，3，3中文中文中国人哈哈哈哈哈这是什么啊，吃葡萄不吐葡萄皮，不吃葡萄倒吐葡萄皮。
+                    </textarea>
+<!--                     <textarea class="form-control" id="the-textarea" rows="10">
 今年上半年，我在人人网实习了一段时间，期间得到了很多宝贵的数据，并做了一些还算有意义的事情，在这里和大家一块儿分享。感谢人人网提供的数据与工作环境，感谢赵继承博士、詹卫东老师的支持和建议。在这项工作中，我得到了很多与众人交流的机会，特别感谢 OpenParty 、 TEDxBeijing 提供的平台。本文已发表在了《程序员》杂志，分上下两部分刊于 2012 年 7 月刊和 8 月刊，在此感谢卢鸫翔编辑的辛勤工作。由于众所周知的原因，《程序员》刊出的文章被和谐过（看到后面大家就自动地知道被和谐的内容是什么了），因而我决定把完整版发在 Blog 上，同时与更多的人一同分享。对此感兴趣的朋友可以给我发邮件继续交流。好了，开始说正文吧。
 
 作为中文系应用语言学专业的学生以及一名数学 Geek ，我非常热衷于用计算的方法去分析汉语资料。汉语是一种独特而神奇的语言。对汉语资料进行自然语言处理时，我们会遇到很多其他语言不会有的困难，比如分词——汉语的词与词之间没有空格，那计算机怎么才知道，“已结婚的和尚未结婚的青年都要实行计划生育”究竟说的是“已／结婚／的／和／尚未／结婚／的／青年”，还是“已／结婚／的／和尚／未／结婚／的／青年”呢？这就是所谓的分词歧义难题。不过，现在很多语言模型已经能比较漂亮地解决这一问题了。但在中文分词领域里，还有一个比分词歧义更令人头疼的东西——未登录词。中文没有首字母大写，专名号也被取消了，这叫计算机如何辨认人名地名之类的东西？更惨的则是机构名、品牌名、专业名词、缩略语、网络新词等等，它们的产生机制似乎完全无规律可寻。最近十年来，中文分词领域都在集中攻克这一难关。自动发现新词成为了关键的环节。
-                    </textarea>
+                    </textarea> -->
                 </div>
             </div>
         </div>
@@ -120,6 +123,7 @@
     <!-- <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script> -->
     <!-- <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script> -->
     <script src="https://cdn.bootcss.com/d3/5.12.0/d3.min.js"></script>
+    <script src="https://cdn.bootcss.com/lodash.js/4.17.15/lodash.js"></script>
 
     <!-- <script src="lodash.js"></script> -->
 
@@ -129,27 +133,35 @@
 
 
     <script type="text/javascript">
+        // "use strict";
         var the_text = '';
         var statistics_log;
+        var result;
         d3.select("#do_statistics").on('click',()=>{
             d3.select(`#the-textarea`).each(function(e, i) {the_text = this.value;});
 
             // statistics_log = string_statistics(the_text,1,18);
             if(typeof(myWorker)=="undefined") {
                 myWorker = new Worker("js/seg.js");
-                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:18, expwin:null, dict:null});
+                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
                 console.log("开始统计，请耐心等待……");
             } else {
-                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:18, expwin:null, dict:null});
+                myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
                 console.log("开始统计，请耐心等待……");
                 // console.log("别急，有任务正在进行！");
-            }
+            };
             myWorker.onmessage = function (event) {
-                console.log(event.data);
+                result = event.data;
+                console.log(result);
+                var jjj = JSON.stringify(result);
+                d3.select(`#output`).append("textarea").classed("form-control",true).text(jjj);
                 // doSomething();
-                console.log("统计完毕！");
+                // console.log("统计完毕！");
                 // myWorker.terminate();
-            }
+            };
+            myWorker.onerror = function (e) {
+                console.log(`ERROR: Line ${e.lineno} in ${e.filename}: ${e.message}`);
+            };
         });
     </script>
 
