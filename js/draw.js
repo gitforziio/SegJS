@@ -112,7 +112,7 @@ function dottedChart(data, id){
         .attr("y", function(d,i){return yScale(d.t_l_pct)})
         .attr("fill", "black")
         .attr("font-size", "8")
-        .attr("opacity", d=>d.a_pct*3)
+        .attr("opacity", d=>(1-d.a_pct**.5))
         ;
 
     var dots = svg_g.selectAll("circle.dot").data(data);

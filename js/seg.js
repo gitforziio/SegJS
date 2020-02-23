@@ -103,13 +103,13 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     //     mainDict[i].sxl_frq = counts[d.s_l+d.str]?counts[d.s_l+d.str]:0;
     //     mainDict[i].sxr_frq = counts[d.str+d.s_r]?counts[d.str+d.s_r]:0;
 
-    //     mainDict[i].sxl_pct = _.ceil(mainDict[i].sxl_frq/counts[d.str],5);
-    //     mainDict[i].sxr_pct = _.ceil(mainDict[i].sxr_frq/counts[d.str],5);
+    //     mainDict[i].sxl_pct = _.ceil(mainDict[i].sxl_frq/counts[d.str],3);
+    //     mainDict[i].sxr_pct = _.ceil(mainDict[i].sxr_frq/counts[d.str],3);
 
-    //     mainDict[i].t_l_pct = counts0[d.t_l]?_.ceil(mainDict[i].str_frq/counts0[d.t_l],5):0;
-    //     mainDict[i].t_r_pct = counts0[d.t_r]?_.ceil(mainDict[i].str_frq/counts0[d.t_r],5):0;
+    //     mainDict[i].t_l_pct = counts0[d.t_l]?_.ceil(mainDict[i].str_frq/counts0[d.t_l],3):0;
+    //     mainDict[i].t_r_pct = counts0[d.t_r]?_.ceil(mainDict[i].str_frq/counts0[d.t_r],3):0;
     //     mainDict[i].item_frq = counts1[`${d.str}※${d.ctx}`];
-    //     mainDict[i].a_pct = _.ceil(mainDict[i].item_frq/mainDict[i].str_frq,5);
+    //     mainDict[i].a_pct = _.ceil(mainDict[i].item_frq/mainDict[i].str_frq,3);
     // });
 
     mainDict = _.forEach(mainDict,function(d,i){
@@ -120,16 +120,16 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
         mainDict[i].sxl_frq = counts_s_l?counts_s_l:0;
         mainDict[i].sxr_frq = counts_s_r?counts_s_r:0;
 
-        mainDict[i].sxl_pct = _.ceil((counts_s_l?counts_s_l:0)/counts_str,5);
-        mainDict[i].sxr_pct = _.ceil((counts_s_r?counts_s_r:0)/counts_str,5);
+        mainDict[i].sxl_pct = _.ceil((counts_s_l?counts_s_l:0)/counts_str,3);
+        mainDict[i].sxr_pct = _.ceil((counts_s_r?counts_s_r:0)/counts_str,3);
 
         let counts_t_l = counts0[d.t_l];
         let counts_t_r = counts0[d.t_r];
-        mainDict[i].t_l_pct = counts_t_l?_.ceil(counts_str/counts_t_l,5):0;
-        mainDict[i].t_r_pct = counts_t_r?_.ceil(counts_str/counts_t_r,5):0;
+        mainDict[i].t_l_pct = counts_t_l?_.ceil(counts_str/counts_t_l,3):0;
+        mainDict[i].t_r_pct = counts_t_r?_.ceil(counts_str/counts_t_r,3):0;
         let item_frq = counts1[`${d.str}※${d.ctx}`]
         mainDict[i].item_frq = item_frq;
-        mainDict[i].a_pct = _.ceil(item_frq/counts_str,5);
+        mainDict[i].a_pct = _.ceil(item_frq/counts_str,3);
     });
 
     // mainDict = _.orderBy(mainDict, ['str_frq','str_len','str','a_pct','item_frq','ctx_len','ctx'], ['desc','desc','asc','asc','desc','desc','asc']);
