@@ -95,18 +95,18 @@
         </div>
     </div></div> -->
 
-    <div class="container my-5 page hiddent" id="page-output"><div class="container py-5">
-        <div class="row">
-            <div class="col">
-                <div id="output"></div>
-            </div>
-        </div>
-    </div></div>
-
     <div class="container my-5 page hiddent" id="page-chartpad"><div class="container py-5">
         <div class="row">
             <div class="col">
                 <div id="chartpad"></div>
+            </div>
+        </div>
+    </div></div>
+
+    <div class="container my-5 page hiddent" id="page-output"><div class="container py-5">
+        <div class="row">
+            <div class="col">
+                <div id="output"></div>
             </div>
         </div>
     </div></div>
@@ -176,8 +176,8 @@
                     var wD = _.cloneDeep(data.wordDict);
                     var jjjjj = _.forEach(wD,(d,i)=>{wD[i]=wD[i]['str']}).join('\n');
                     d3.selectAll(`#output *`).remove();
-                    d3.select(`#output`).append("textarea").classed("form-control",true).attr("rows","10").text(jjj);
                     d3.select(`#output`).append("textarea").classed("form-control",true).classed("wordlist",true).text(jjjjj);
+                    d3.select(`#output`).append("textarea").classed("form-control",true).attr("rows","10").text(jjj);
                     dottedChart(data.wordDict, "chartpad");
                     // myWorker.terminate();
                 } else {
