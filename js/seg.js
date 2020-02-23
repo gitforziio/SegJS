@@ -5,7 +5,7 @@ importScripts('https://cdn.bootcss.com/lodash.js/4.17.15/lodash.js');
 self.addEventListener('message', function (e) {
     let e_data = e.data;
     let bbbb = string_statistics(e_data.txt, e_data.minwidth, e_data.maxwidth, e_data.expwin, e_data.dict);
-    self.postMessage(bbbb);
+    self.postMessage({stage:"result",data:bbbb});
     // self.postMessage(e.data);
 }, false);
 
@@ -86,6 +86,9 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
 
     mainDict = strlist;
 
+    postMessage({stage:"strlist",data:`strlist`});
+    // postMessage({stage:"strlist",data:`${strlist.length}`});
+
     var counts0 = _.countBy(txt, "0");
     var counts = _.countBy(mainDict, d=>d.str);
     var counts1 = _.countBy(mainDict, d=>`${d.str}※${d.ctx}`);
@@ -94,29 +97,61 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     // var counts2 = _.countBy(mainDict, d=>d.ctx);
 
     mainDict = _.uniqBy(mainDict, d=>`${d.str}※${d.ctx}`);
+
+    // mainDict = _.forEach(mainDict,function(d,i){
+    //     mainDict[i].str_frq = counts[d.str];
+    //     mainDict[i].sxl_frq = counts[d.s_l+d.str]?counts[d.s_l+d.str]:0;
+    //     mainDict[i].sxr_frq = counts[d.str+d.s_r]?counts[d.str+d.s_r]:0;
+
+    //     mainDict[i].sxl_pct = _.ceil(mainDict[i].sxl_frq/counts[d.str],3);
+    //     mainDict[i].sxr_pct = _.ceil(mainDict[i].sxr_frq/counts[d.str],3);
+
+    //     mainDict[i].t_l_pct = counts0[d.t_l]?_.ceil(mainDict[i].str_frq/counts0[d.t_l],3):0;
+    //     mainDict[i].t_r_pct = counts0[d.t_r]?_.ceil(mainDict[i].str_frq/counts0[d.t_r],3):0;
+    //     mainDict[i].item_frq = counts1[`${d.str}※${d.ctx}`];
+    //     mainDict[i].a_pct = _.ceil(mainDict[i].item_frq/mainDict[i].str_frq,3);
+    // });
+
     mainDict = _.forEach(mainDict,function(d,i){
-        mainDict[i].str_frq = counts[d.str];
-        mainDict[i].sxl_frq = counts[d.s_l+d.str]?counts[d.s_l+d.str]:0;
-        mainDict[i].sxr_frq = counts[d.str+d.s_r]?counts[d.str+d.s_r]:0;
-        mainDict[i].sxl_pct = _.ceil(mainDict[i].sxl_frq/counts[d.str],3);
-        mainDict[i].sxr_pct = _.ceil(mainDict[i].sxr_frq/counts[d.str],3);
-        // mainDict[i].t_l_pct = counts0[d.t_l]?_.ceil(counts0[d.t_l]/txt_length,3):0;
-        // mainDict[i].t_r_pct = counts0[d.t_r]?_.ceil(counts0[d.t_r]/txt_length,3):0;
-        mainDict[i].t_l_pct = counts0[d.t_l]?_.ceil(mainDict[i].str_frq/counts0[d.t_l],3):0;
-        mainDict[i].t_r_pct = counts0[d.t_r]?_.ceil(mainDict[i].str_frq/counts0[d.t_r],3):0;
-        mainDict[i].item_frq = counts1[`${d.str}※${d.ctx}`];
-        mainDict[i].a_pct = _.ceil(mainDict[i].item_frq/mainDict[i].str_frq,3);
+        let counts_str = counts[d.str];
+        let counts_s_l = counts[d.s_l+d.str];
+        let counts_s_r = counts[d.str+d.s_r];
+        mainDict[i].str_frq = counts_str;
+        mainDict[i].sxl_frq = counts_s_l?counts_s_l:0;
+        mainDict[i].sxr_frq = counts_s_r?counts_s_r:0;
+
+        mainDict[i].sxl_pct = _.ceil((counts_s_l?counts_s_l:0)/counts_str,3);
+        mainDict[i].sxr_pct = _.ceil((counts_s_r?counts_s_r:0)/counts_str,3);
+
+        let counts_t_l = counts0[d.t_l];
+        let counts_t_r = counts0[d.t_r];
+        mainDict[i].t_l_pct = counts_t_l?_.ceil(counts_str/counts_t_l,3):0;
+        mainDict[i].t_r_pct = counts_t_r?_.ceil(counts_str/counts_t_r,3):0;
+        let item_frq = counts1[`${d.str}※${d.ctx}`]
+        mainDict[i].item_frq = item_frq;
+        mainDict[i].a_pct = _.ceil(item_frq/counts_str,3);
     });
+
     // mainDict = _.orderBy(mainDict, ['str_frq','str_len','str','a_pct','item_frq','ctx_len','ctx'], ['desc','desc','asc','asc','desc','desc','asc']);
     // mainDict = _.orderBy(mainDict, ['str_frq','a_pct','str_len','str','item_frq','ctx_len','ctx'], ['desc','asc','desc','asc','desc','desc','asc']);
 
+
+    // postMessage({stage:"mainDict",data:`mainDict`});
+    postMessage({stage:"mainDict",data:mainDict});
 
     var strDict = _.cloneDeep(mainDict);
     strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>0.06)?(d.a_pct+"※"+d.ctx):(d.a_pct)}`);
     // strDict = _.forEach(strDict, function(d,i) {strDict[i]=_.pick(strDict[i], ['a_pct','str','str_len','str_frq']);});
     strDict = _.orderBy(strDict, ['str_frq','sxl_pct','t_l_pct','sxr_pct','t_r_pct','str','str_len'], ['desc','asc','desc','asc','desc','asc','desc']);
 
-    wordDict = _.filter(strDict, function(d) { return d.str_len>1&&d.sxl_pct<0.5&&d.sxr_pct<0.5&&d.t_l_pct>0.3&&d.t_r_pct>0.3&&d.sxl_pct!=0&&d.sxr_pct!=0; });
+
+    postMessage({stage:"strDict",data:`strDict`});
+    // postMessage({stage:"strDict",data:strDict});
+
+    let vvv1 = 0.6;
+    let vvv2 = 0.15;
+
+    wordDict = _.filter(strDict, function(d) { return d.str_len>1&&d.sxl_pct<vvv1&&d.sxr_pct<vvv1&&d.t_l_pct>vvv2&&d.t_r_pct>vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0; });
     // wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.t_l_pct}※${d.t_r_pct}`);
     wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
 
