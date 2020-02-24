@@ -110,9 +110,9 @@ function dottedChart(data, id){
         .attr("class", function(d,i){if(0){return"word word-highlight"}else{return"word"}})
         .attr("x", function(d,i){return xScale(_.max([d.sxl_pct,d.sxr_pct]))})
         .attr("y", function(d,i){return yScale(_.min([d.t_l_pct,d.t_r_pct]))})
-        .attr("fill", "black")
+        .attr("fill", function(d,i){return (d.sxl_pct>d.sxr_pct)?"green":((d.sxl_pct==d.sxr_pct)?"black":"blue")})
         .attr("font-size", "8")
-        .attr("opacity", d=>(1-d.a_pct**.5))
+        .attr("opacity", d=>(1-d.a_pct**.25))
         ;
 
     var dots = svg_g.selectAll("circle.dot").data(data);
