@@ -148,11 +148,17 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     postMessage({stage:"strDict",data:`strDict`});
     // postMessage({stage:"strDict",data:strDict});
 
-    let vvv0 = 3;
-    let vvv1 = 0.6;
-    let vvv2 = 0.15;
+    let vlen = 2;       // >= 片段至少有几个字符
+    let vvv0 = 3;       // >= 该片段在文档中至少出现多少次
+    let vvv1 = 0.7;     // <= 该片段在相同外部环境中最多占多大比例（越大，越有可能是词或短语内部的一部分，而不是独立的词）
+    let vvv2 = 0.15;    // >= 内部首尾字用在该片段中的概率至少达到多少（越大，越粘合）
 
-    wordDict = _.filter(strDict, function(d) { return (d.str_len>1&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<vvv1&&_.min([d.t_l_pct,d.t_r_pct])>vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
+    // let vlen = 2;
+    // let vvv0 = 2;
+    // let vvv1 = 0.96;
+    // let vvv2 = 0.15;
+
+    wordDict = _.filter(strDict, function(d) { return (d.str_len>=vlen&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
     // wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.t_l_pct}※${d.t_r_pct}`);
     wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
 
