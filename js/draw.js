@@ -113,7 +113,7 @@ function dottedChart(data, id){
         .call(yAxis);
     svg_y_axis.append("text")
         .attr("transform",`translate(${-32},${height/2}),rotate(-90)`)
-        .text("内部凝固度→")
+        .text("内部凝固度（取了对数）→")
         .attr("fill", "black")
         ;
     svg_y_axis.select(".domain")

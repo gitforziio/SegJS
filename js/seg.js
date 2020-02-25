@@ -160,7 +160,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     var dictSet = {
         wordDict: wordDict,
         inputs: {
-            txt: txt,
+            tcts: tcts,
             txt_length: txt_length,
             expwin: expwin,
             minwidth: minwidth,
