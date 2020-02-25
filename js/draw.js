@@ -6,13 +6,14 @@ function dottedChart(data, id){
     var xScale;
     xScale = d3.scaleLinear()
         .range([0, width])
-        .domain([d3.min(data, d=>d.sxl_pct)-0.1, d3.max(data, d=>d.sxl_pct)+0.1])
+        .domain([d3.min(data, d=>d.sxl_pct)-0.02, d3.max(data, d=>d.sxl_pct)+0.02])
         ;
 
     var yScale;
     yScale = d3.scaleLinear()
         .range([0, height])
-        .domain([d3.min(data, d=>d.t_l_pct)-0.1, d3.max(data, d=>d.t_l_pct)+0.1])
+        .domain([d3.max(data, d=>d.t_l_pct)+0.02, d3.min(data, d=>d.t_l_pct)-0.02])
+        // .domain([d3.min(data, d=>d.t_l_pct)-0.1, d3.max(data, d=>d.t_l_pct)+0.1])
         ;
 
     var xAxis = d3.axisBottom()
@@ -54,15 +55,17 @@ function dottedChart(data, id){
 
     svg_x_axis = svg_g.append("g")
         .attr("class", "axis x-axis")
-        // .attr("transform","translate(0,"+(height).toString()+")")
-        .attr("transform","translate(0,0)")
+        .attr("transform","translate(0,"+(height).toString()+")")
+        // .attr("transform","translate(0,0)")
         .call(xAxis);
-    // svg_x_axis.append("text")
-    //     .attr("x", width/2)
-    //     .attr("y", "3em")
+    svg_x_axis.append("text")
+        .attr("transform",`translate(${width/2},${28})`)
+        .text("←外部环境多样性")
+        .attr("fill", "black")
     //     // .attr("dy", "-.71em")
     //    .style("text-anchor", "middle")
-    //     .text("时间（年）");
+    //     .text("时间（年）")
+        ;
     svg_x_axis.select(".domain")
         .attr("d", "M0,1V0H"+width+"V0");
 
@@ -75,6 +78,11 @@ function dottedChart(data, id){
         .attr("class", "axis y-axis")
         .attr("transform","translate(0,0)")
         .call(yAxis);
+    svg_y_axis.append("text")
+        .attr("transform",`translate(${-32},${height/2}),rotate(-90)`)
+        .text("内部凝固度→")
+        .attr("fill", "black")
+        ;
     // svg_y_axis.append("text")
     //     .attr("x", "-1em")
     //     .attr("y", "0")

@@ -155,6 +155,10 @@
         var statistics_log;
         var data;
         var time_start;
+        var time_end;
+        var time_show_start;
+        var time_show_end;
+        var msg1, msg2, msg3, msg4;
         d3.select("#do_statistics").on('click',()=>{
             d3.select(`#the-textarea`).each(function(e, i) {the_text = this.value;});
             console.log(" ");
@@ -172,18 +176,28 @@
             d3.select(`#output`).append("p").text(`${msg1}`);
             myWorker.onmessage = function (event) {
                 if (event.data.stage=='result') {
-                    var time_end = _.now();
+                    time_end = _.now();
                     // console.log(time_end);
-                    console.log(`统计完毕！现在是【${time_end}】；共耗时：【${_.ceil((time_end-time_start)/1000,0)}】秒；均耗时：【${_.ceil(the_text_len/(time_end-time_start)*1000,2)}】字符/秒`);
+                    d3.selectAll(`#output *`).remove();
+                    msg2 = `统计完毕！现在是【${time_end}】；共耗时：【${_.ceil((time_end-time_start)/1000,0)}】秒；均耗时：【${_.ceil(the_text_len/(time_end-time_start)*1000,2)}】字符/秒`;
+                    console.log(msg2);
+                    d3.select(`#output`).append("p").text(msg2);
+                    // time_show_start = _.now();
+                    // msg3 = `现在是【${time_show_start}】；开始读取数据并呈现，请耐心等待……`;
+                    // console.log(msg3);
                     data = event.data.data;
+                    dottedChart(data.wordDict, "chartpad");
                     console.log(data);
                     var jjj = JSON.stringify(data);
                     var wD = _.cloneDeep(data.wordDict);
                     var jjjjj = _.forEach(wD,(d,i)=>{wD[i]=wD[i]['str']}).join('\n');
                     d3.selectAll(`#output *`).remove();
+                    d3.select(`#output`).append("p").text(msg2);
                     d3.select(`#output`).append("textarea").classed("form-control",true).classed("wordlist",true).text(jjjjj);
                     d3.select(`#output`).append("textarea").classed("form-control",true).attr("rows","10").text(jjj);
-                    dottedChart(data.wordDict, "chartpad");
+                    // time_show_end = _.now();
+                    // msg4 = `读取并呈现完毕！现在是【${time_show_end}】；耗时：【${_.ceil((time_show_end-time_show_start)/1000,0)}】秒`;
+                    // console.log(msg4);
                     // myWorker.terminate();
                 } else {
                     // d3.selectAll(`#output *`).remove();

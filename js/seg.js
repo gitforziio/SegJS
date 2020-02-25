@@ -11,106 +11,96 @@ self.addEventListener('message', function (e) {
 
 function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
 
-    // 返回内容：
-    //    配置
-    //    片段频率列表
-    //    语境频率列表
-    //    片段语境频率列表
+    let vapct = 0.075;  // >= 片段所在上下文占片段所有上下文的比例 至少达到多少时，视为一个实例（比如“的”所在片段过于灵活，就不考虑实例了）（决定了分词时要不要特别对待）
+    let vlen = 2;       // >= 片段至少有几个字符
+    let vvv0 = 3;       // >= 该片段在文档中至少出现多少次
+    let vvv1 = 0.7;     // <= 该片段在相同外部环境中最多占多大比例（越大，越有可能是词或短语内部的一部分，而不是独立的词）
+    let vvv2 = 0.15;    // >= 内部首尾字用在该片段中的概率至少达到多少（越大，越粘合）
 
-    // const DefultDICT = [{
-    //     str: '',
-    //     str_len: 0,
-    //     str_freq: 0,
-    //     ctx: '',
-    //     ctx_len: 0,
-    //     ctx_freq: 0,
-    //     all_freq: 0,
-    // }];
+    // let vapct = 0.075;  // >= 片段所在上下文占片段所有上下文的比例 至少达到多少时，视为一个实例（比如“的”所在片段过于灵活，就不考虑实例了）（决定了分词时要不要特别对待）
+    // let vlen = 2;       // >= 片段至少有几个字符
+    // let vvv0 = 1;       // >= 该片段在文档中至少出现多少次
+    // let vvv1 = 1;     // <= 该片段在相同外部环境中最多占多大比例（越大，越有可能是词或短语内部的一部分，而不是独立的词）
+    // let vvv2 = 0;    // >= 内部首尾字用在该片段中的概率至少达到多少（越大，越粘合）
 
-    const DefultDICT = [];
-    var txt = arguments[0] ? arguments[0] : '';
-    var minwidth = arguments[1] ? arguments[1] : 1;
-    var maxwidth = arguments[2] ? arguments[2] : (minwidth>2 ? minwidth : 2);
-    var expwin = arguments[3] ? arguments[3] : 4;
-    var dict = arguments[4] ? arguments[4] : DefultDICT;
-
-    txt = clear_txt(txt);
+    let each_size = 5000  // 每个文档块的最大字符数
 
     //**------------------------------------------------------------**//
 
+    const DefultDICT = [];
+    var txt = arguments[0] ? arguments[0] : '';
+    var minwidth = arguments[1] ? (arguments[1]>1?Math.floor(arguments[1]):1) : 1;
+    var maxwidth = arguments[2] ? (arguments[2]>minwidth?Math.floor(arguments[2]):minwidth) : (minwidth>2 ? minwidth : 2);
+    var expwin = arguments[3] ? Math.floor(arguments[3]) : 4;
+    var dict = arguments[4] ? arguments[4] : DefultDICT;
+
+    minwidth = (minwidth>each_size)?each_size:minwidth;
+    maxwidth = (maxwidth>each_size)?each_size:maxwidth;
+
+    txt = clear_txt(txt);
     var txt_length = txt.length;
 
-    if (minwidth>maxwidth) {let x=minwidth; minwidth=maxwidth; maxwidth=x;};
-    minwidth = (minwidth>txt_length)?txt_length:minwidth;
-    maxwidth = (maxwidth>txt_length)?txt_length:maxwidth;
+    var tcts = txt2tcts(txt, each_size, maxwidth+expwin);
+
+    //**------------------------------------------------------------**//
 
     var mainDict;
     var strlist = [];
-    for (let w = minwidth; w <= maxwidth; w++) {
-        for (let i = 0; i <= txt_length-w; i++) {
-            let str = txt.slice(i,i+w);
-            let s_l = txt.slice(i-1,i);
-            let s_r = txt.slice(i+w,i+w+1);
-            let t_l = str[0];
-            let t_r = str[str.length-1];
-            let j = i - expwin;
-            let p = i+w + expwin;
-            j = (j>0)?(j):(0);
-            p = (p<txt_length)?(p):(txt_length);
-            let ctx = txt.slice(j,p);
-            strlist.push({
-                str: str,
-                sxl_pct: 0,// 片段加上左字的频次 占 片段频次 的比例
-                sxr_pct: 0,// 片段加上右字的频次 占 片段频次 的比例
-                t_l_pct: 0,// 片段频次 占 内左字 的字频 的比例
-                t_r_pct: 0,// 片段频次 占 内右字 的字频 的比例
-                str_frq: 0,// 片段在文档中的频次
-                s_l: s_l,// 左字
-                s_r: s_r,// 右字
-                t_l: t_l,// 内左字
-                t_r: t_r,// 内右字
-                a_pct: 0,// 片段所在上下文在该片段所有上下文中所占的比例。越小，该用例越被证明是自由的；越大，该用例要么不自由，要么出现频率小。
-                sxl_frq: 0,// 片段加上左字 在文档中的频次
-                sxr_frq: 0,// 片段加上右字 在文档中的频次
-                ctx: ctx,
-                item_frq: 0,// 片段的上下文在文档中的频次
-                str_len: str.length,
-                ctx_len: ctx.length,
-                txt_length: txt_length,
-            });
+
+    tcts.forEach((tct,tid)=>{
+        let tct_len = tct.length;
+        for (let w = minwidth; w <= maxwidth; w++) {
+            let range_len = (tct_len>each_size)?(each_size):(tct_len-w+1);
+            for (let i = 0; i < range_len; i++) {
+                let i_w = i+w;
+                let j = i - expwin;
+                j = (j>0)?(j):(0);
+                let p = i_w + expwin;
+                p = (p<tct_len)?(p):(tct_len);
+                let ctx = tct.slice(j,p);
+                let str = tct.slice(i,i_w);
+                let s_l = tct.slice(i-1,i);
+                let s_r = tct.slice(i_w,i_w+1);
+                let t_l = str[0];
+                let t_r = str[str.length-1];
+                strlist.push({
+                    str: str,
+                    sxl_pct: 0,// 片段加上左字的频次 占 片段频次 的比例（越高，说明越可能是加左字后片段中的一部分）（外不自由度）
+                    sxr_pct: 0,// 片段加上右字的频次 占 片段频次 的比例（越高，说明越可能是加右字后片段中的一部分）（外不自由度）
+                    t_l_pct: 0,// 片段频次 占 内左字 的字频 的比例（越高，说明左字在该片段中越粘合）（内凝固度）
+                    t_r_pct: 0,// 片段频次 占 内右字 的字频 的比例（越高，说明右字在该片段中越粘合）（内凝固度）
+                    str_frq: 0,// 片段在文档中的频次
+                    s_l: s_l,// 左字
+                    s_r: s_r,// 右字
+                    t_l: t_l,// 内左字
+                    t_r: t_r,// 内右字
+                    a_pct: 0,// 片段所在上下文在该片段所有上下文中所占的比例。越小，该用例越被证明是自由的；越大，该用例要么不自由，要么出现频率小。（决定了分词时要不要特别对待）
+                    sxl_frq: 0,// 片段加上左字 在文档中的频次
+                    sxr_frq: 0,// 片段加上右字 在文档中的频次
+                    ctx: ctx,
+                    ctx_frq: 0,// 片段的上下文在文档中的频次
+                    str_slice_start: i,
+                    ctx_slice_start: j,
+                    tid: tid,
+                    // str_len: str.length,
+                    // ctx_len: ctx.length,
+                    // txt_length: txt_length,
+                });
+            }
         }
-    }
+    });
 
-    // let mainDict0 = _.orderBy(strlist, ['str_len','ctx_len'], ['desc','desc']);
-    // mainDict = _.groupBy(mainDict0, d=>d.str);
+    postMessage({stage:"strlist",data:`strlist.length: ${strlist.length}`});
 
-    mainDict = strlist;
+    //**------------------------------------------------------------**//
 
-    postMessage({stage:"strlist",data:`strlist`});
-    // postMessage({stage:"strlist",data:`${strlist.length}`});
+    mainDict = _.cloneDeep(strlist);
 
     var counts0 = _.countBy(txt, "0");
     var counts = _.countBy(mainDict, d=>d.str);
     var counts1 = _.countBy(mainDict, d=>`${d.str}※${d.ctx}`);
-    // var counts_l = _.countBy(mainDict, d=>`${d.str}※${d.s_l}`);
-    // var counts_r = _.countBy(mainDict, d=>`${d.str}※${d.s_r}`);
-    // var counts2 = _.countBy(mainDict, d=>d.ctx);
 
     mainDict = _.uniqBy(mainDict, d=>`${d.str}※${d.ctx}`);
-
-    // mainDict = _.forEach(mainDict,function(d,i){
-    //     mainDict[i].str_frq = counts[d.str];
-    //     mainDict[i].sxl_frq = counts[d.s_l+d.str]?counts[d.s_l+d.str]:0;
-    //     mainDict[i].sxr_frq = counts[d.str+d.s_r]?counts[d.str+d.s_r]:0;
-
-    //     mainDict[i].sxl_pct = _.ceil(mainDict[i].sxl_frq/counts[d.str],3);
-    //     mainDict[i].sxr_pct = _.ceil(mainDict[i].sxr_frq/counts[d.str],3);
-
-    //     mainDict[i].t_l_pct = counts0[d.t_l]?_.ceil(mainDict[i].str_frq/counts0[d.t_l],3):0;
-    //     mainDict[i].t_r_pct = counts0[d.t_r]?_.ceil(mainDict[i].str_frq/counts0[d.t_r],3):0;
-    //     mainDict[i].item_frq = counts1[`${d.str}※${d.ctx}`];
-    //     mainDict[i].a_pct = _.ceil(mainDict[i].item_frq/mainDict[i].str_frq,3);
-    // });
 
     mainDict = _.forEach(mainDict,function(d,i){
         let counts_str = counts[d.str];
@@ -120,72 +110,113 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
         mainDict[i].sxl_frq = counts_s_l?counts_s_l:0;
         mainDict[i].sxr_frq = counts_s_r?counts_s_r:0;
 
-        mainDict[i].sxl_pct = _.ceil((counts_s_l?counts_s_l:0)/counts_str,3);
-        mainDict[i].sxr_pct = _.ceil((counts_s_r?counts_s_r:0)/counts_str,3);
+        mainDict[i].sxl_pct = __ceil((counts_s_l?counts_s_l:0)/counts_str,3);
+        mainDict[i].sxr_pct = __ceil((counts_s_r?counts_s_r:0)/counts_str,3);
 
         let counts_t_l = counts0[d.t_l];
         let counts_t_r = counts0[d.t_r];
-        mainDict[i].t_l_pct = counts_t_l?_.ceil(counts_str/counts_t_l,3):0;
-        mainDict[i].t_r_pct = counts_t_r?_.ceil(counts_str/counts_t_r,3):0;
-        let item_frq = counts1[`${d.str}※${d.ctx}`]
-        mainDict[i].item_frq = item_frq;
-        mainDict[i].a_pct = _.ceil(item_frq/counts_str,3);
+        mainDict[i].t_l_pct = counts_t_l?__ceil(counts_str/counts_t_l,3):0;
+        mainDict[i].t_r_pct = counts_t_r?__ceil(counts_str/counts_t_r,3):0;
+        let ctx_frq = counts1[`${d.str}※${d.ctx}`]
+        mainDict[i].ctx_frq = ctx_frq;
+        mainDict[i].a_pct = __ceil(ctx_frq/counts_str,3);
     });
 
-    // mainDict = _.orderBy(mainDict, ['str_frq','str_len','str','a_pct','item_frq','ctx_len','ctx'], ['desc','desc','asc','asc','desc','desc','asc']);
-    // mainDict = _.orderBy(mainDict, ['str_frq','a_pct','str_len','str','item_frq','ctx_len','ctx'], ['desc','asc','desc','asc','desc','desc','asc']);
+    // mainDict = _.orderBy(mainDict, ['str_frq','str_len','str','a_pct','ctx_frq','ctx_len','ctx'], ['desc','desc','asc','asc','desc','desc','asc']);
+    // mainDict = _.orderBy(mainDict, ['str_frq','a_pct','str_len','str','ctx_frq','ctx_len','ctx'], ['desc','asc','desc','asc','desc','desc','asc']);
 
 
     // postMessage({stage:"mainDict",data:`mainDict`});
-    postMessage({stage:"mainDict",data:mainDict});
+    postMessage({stage:"mainDict",data:`mainDict.length: ${mainDict.length}`});
+
+    //**------------------------------------------------------------**//
 
     var strDict = _.cloneDeep(mainDict);
-    strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>0.06)?(d.a_pct+"※"+d.ctx):(d.a_pct)}`);
-    // strDict = _.forEach(strDict, function(d,i) {strDict[i]=_.pick(strDict[i], ['a_pct','str','str_len','str_frq']);});
-    strDict = _.orderBy(strDict, ['str_frq','sxl_pct','t_l_pct','sxr_pct','t_r_pct','str','str_len'], ['desc','asc','desc','asc','desc','asc','desc']);
+    strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>=vapct)?(d.a_pct+"※"+d.ctx):(d.a_pct)}`);
+    // strDict = _.forEach(strDict, function(d,i) {strDict[i]=_.pick(strDict[i], ['str','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str_frq','a_pct']);});
+    strDict = _.orderBy(strDict, ['str_frq','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str'], ['desc','asc','asc','desc','desc','asc']);
 
 
-    postMessage({stage:"strDict",data:`strDict`});
+    postMessage({stage:"strDict",data:`strDict.length: ${strDict.length}`});
     // postMessage({stage:"strDict",data:strDict});
 
-    let vlen = 2;       // >= 片段至少有几个字符
-    let vvv0 = 3;       // >= 该片段在文档中至少出现多少次
-    let vvv1 = 0.7;     // <= 该片段在相同外部环境中最多占多大比例（越大，越有可能是词或短语内部的一部分，而不是独立的词）
-    let vvv2 = 0.15;    // >= 内部首尾字用在该片段中的概率至少达到多少（越大，越粘合）
+    //**------------------------------------------------------------**//
 
-    // let vlen = 2;
-    // let vvv0 = 2;
-    // let vvv1 = 0.96;
-    // let vvv2 = 0.15;
-
-    wordDict = _.filter(strDict, function(d) { return (d.str_len>=vlen&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
+    wordDict = _.filter(strDict, function(d) { return (d.str.length>=vlen&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
     // wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.t_l_pct}※${d.t_r_pct}`);
-    wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
+    // wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
 
+    postMessage({stage:"wordDict",data:`wordDict.length: ${wordDict.length}`});
 
+    //**------------------------------------------------------------**//
 
-    // mainDict = counteddictlist(strlist);
-
-    // var reduDict = reduceDict(_.cloneDeep(mainDict));
-    // reduDict.sort(function(a,b){
-    //     var result;
-    //     result = b.frequency_clear-a.frequency_clear;
-    //     result = (result==0)?(b.len-a.len):result;
-    //     return result;
-    // });
-
-    var log = {
+    var dictSet = {
+        wordDict: wordDict,
+        inputs: {
+            txt: txt,
+            txt_length: txt_length,
+            expwin: expwin,
+            minwidth: minwidth,
+            maxwidth: maxwidth,
+        },
+        settings: {
+            each_size: each_size,
+            vapct: vapct,
+            vlen: vlen,
+            vvv0: vvv0,
+            vvv1: vvv1,
+            vvv2: vvv2,
+        },
         // mainDict: mainDict,
         // strDict: strDict,
-        wordDict: wordDict,
         // counts: counts,
         // counts1: counts1,
         // reduDict: reduDict,
-        txt_length: txt_length,
     };
 
-    return log;
+    return dictSet;
 }
+
+
+
+function clear_txt(txt) {
+    txt = `${txt.replace(/([\n\r\s\t]+)/g,' ').trim()}`;
+    // txt = `${txt.replace(/\\|\//g,' ').trim()}`;
+    return txt;
+}
+
+function __ceil(a) {
+    return a;
+}
+
+function txt2tcts(txt, each_size, width) {
+    var tcts = [];
+    var txt_len = txt.length;
+
+    var notend = true;
+    let i = 0;
+
+    while (notend) {
+        let j = i+each_size;
+        let tct = txt.slice(i, j+width+1);
+        tcts.push(tct);
+        i = j;
+        if (j>=txt_len) {notend = false};
+    }
+
+    return tcts;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -316,12 +347,6 @@ function reduceDict(lst) {
     anotherList = anotherList.filter(function(boy){return(boy.contexts.length>0);});
     return anotherList;
 
-}
-
-function clear_txt(txt) {
-    txt = `${txt.replace(/([\n\r\s\t]+)/g,' ').trim()}`;
-    // txt = `${txt.replace(/\\|\//g,' ').trim()}`;
-    return txt;
 }
 
 
