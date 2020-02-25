@@ -1,10 +1,10 @@
 function dottedChart(data, id){
 
 
-    // data.forEach((d,i)=>{
-    //     data[i].t_l_pct=Math.log(data[i].t_l_pct);
-    //     data[i].t_r_pct=Math.log(data[i].t_r_pct);
-    // });
+    data.forEach((d,i)=>{
+        data[i].t_l_pct=Math.log(data[i].t_l_pct);
+        data[i].t_r_pct=Math.log(data[i].t_r_pct);
+    });
 
 
     var margin = {top: 50, right: 50, bottom: 50, left: 50},
@@ -18,7 +18,8 @@ function dottedChart(data, id){
         ;
 
     var yScale;
-    yScale = d3.scaleLog()
+    // yScale = d3.scaleLog()
+    yScale = d3.scaleLinear()
         .range([0, height])
         .domain([d3.max(data, d=>_.min([d.t_l_pct,d.t_r_pct])), d3.min(data, d=>_.min([d.t_l_pct,d.t_r_pct]))])
         // .domain([d3.min(data, d=>d.t_l_pct)-0.1, d3.max(data, d=>d.t_l_pct)+0.1])
@@ -77,7 +78,7 @@ function dottedChart(data, id){
 
     svg_x_axis = svg_g.append("g")
         .attr("class", "axis x-axis")
-        .attr("transform","translate(0,"+(height).toString()+")")
+        .attr("transform",`translate(0,${height})`)
         .call(xAxis)
         ;
     svg_x_axis.append("text")
@@ -87,6 +88,18 @@ function dottedChart(data, id){
         ;
     svg_x_axis.select(".domain")
         .attr("d", "M0,1V0H"+width+"V0");
+
+    svg_x_axis1 = svg_x_axis.clone(true)
+        ;
+    svg_x_axis.selectAll("path,line")
+        .attr("stroke", "white")
+        .attr("stroke-width", 3)
+        ;
+    svg_x_axis.selectAll("text")
+        .attr("stroke", "white")
+        .attr("fill", "white")
+        .attr("stroke-width", 3)
+        ;
 
 
     var svg_y_axis;
@@ -104,6 +117,18 @@ function dottedChart(data, id){
         ;
     svg_y_axis.select(".domain")
         .attr("d", "M0,0H0V"+height+"H0")
+        ;
+
+    svg_y_axis1 = svg_y_axis.clone(true)
+        ;
+    svg_y_axis.selectAll("path,line")
+        .attr("stroke", "white")
+        .attr("stroke-width", 3)
+        ;
+    svg_y_axis.selectAll("text")
+        .attr("stroke", "white")
+        .attr("fill", "white")
+        .attr("stroke-width", 3)
         ;
 
 
@@ -139,10 +164,31 @@ function dottedChart(data, id){
         .on("zoom", ()=>{
             svg_g_g.attr("transform", d3.event.transform);
             svg_x_axis.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
+            svg_x_axis1.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
             svg_y_axis.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
+            svg_y_axis1.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
+            let k = d3.event.transform.k;
             // words.attr("transform", `translate(${d3.event.transform.x},${d3.event.transform.y}),scale(${d3.event.transform.k*0.5})`);
-            words.attr("font-size", `${8/(d3.event.transform.k)+d3.event.transform.k*0.1}`);
-            dots.attr("r", `${1/(d3.event.transform.k)}`)
+            words.attr("font-size", `${8/(k)+k*0.1}`);
+            dots.attr("r", `${1/(k)}`);
+            svg_x_axis.selectAll("path,line")
+                .attr("stroke", "white")
+                .attr("stroke-width", 3)
+                ;
+            svg_x_axis.selectAll("text")
+                .attr("stroke", "white")
+                .attr("fill", "white")
+                .attr("stroke-width", 3)
+                ;
+            svg_y_axis.selectAll("path,line")
+                .attr("stroke", "white")
+                .attr("stroke-width", 3)
+                ;
+            svg_y_axis.selectAll("text")
+                .attr("stroke", "white")
+                .attr("fill", "white")
+                .attr("stroke-width", 3)
+                ;
         })
         ;
 
