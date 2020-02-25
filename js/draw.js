@@ -1,4 +1,12 @@
 function dottedChart(data, id){
+
+
+    data.forEach((d,i)=>{
+        data[i].t_l_pct=Math.log(data[i].t_l_pct);
+        data[i].t_r_pct=Math.log(data[i].t_r_pct);
+    });
+
+
     var margin = {top: 50, right: 50, bottom: 50, left: 50},
         width = 500,
         height = 500;
@@ -6,13 +14,13 @@ function dottedChart(data, id){
     var xScale;
     xScale = d3.scaleLinear()
         .range([0, width])
-        .domain([d3.min(data, d=>d.sxl_pct)-0.02, d3.max(data, d=>d.sxl_pct)+0.02])
+        .domain([d3.min(data, d=>_.max([d.sxl_pct,d.sxr_pct]))-0.02, d3.max(data, d=>_.max([d.sxl_pct,d.sxr_pct]))+0.02])
         ;
 
     var yScale;
     yScale = d3.scaleLinear()
         .range([0, height])
-        .domain([d3.max(data, d=>d.t_l_pct)+0.02, d3.min(data, d=>d.t_l_pct)-0.02])
+        .domain([d3.max(data, d=>_.min([d.t_l_pct,d.t_r_pct]))+0.06, d3.min(data, d=>_.min([d.t_l_pct,d.t_r_pct]))-0.06])
         // .domain([d3.min(data, d=>d.t_l_pct)-0.1, d3.max(data, d=>d.t_l_pct)+0.1])
         ;
 
@@ -56,15 +64,12 @@ function dottedChart(data, id){
     svg_x_axis = svg_g.append("g")
         .attr("class", "axis x-axis")
         .attr("transform","translate(0,"+(height).toString()+")")
-        // .attr("transform","translate(0,0)")
-        .call(xAxis);
+        .call(xAxis)
+        ;
     svg_x_axis.append("text")
         .attr("transform",`translate(${width/2},${28})`)
         .text("←外部环境多样性")
         .attr("fill", "black")
-    //     // .attr("dy", "-.71em")
-    //    .style("text-anchor", "middle")
-    //     .text("时间（年）")
         ;
     svg_x_axis.select(".domain")
         .attr("d", "M0,1V0H"+width+"V0");
@@ -83,32 +88,9 @@ function dottedChart(data, id){
         .text("内部凝固度→")
         .attr("fill", "black")
         ;
-    // svg_y_axis.append("text")
-    //     .attr("x", "-1em")
-    //     .attr("y", "0")
-    //     .attr("dy", "-.5em")
-    //    .style("text-anchor", "end")
-    //     .text("类型");
     svg_y_axis.select(".domain")
-        .attr("d", "M0,0H0V"+height+"H0");
-        // .remove();
-    // svg_y_axis.selectAll(".tick > line")
-    //     .remove();
-    // svg_y_axis.selectAll(".tick > text")
-    //     .attr("textLength", function(){if(this.innerHTML.length<=26){return null}else{return "13em"}})
-    //     .attr("lengthAdjust", "spacingAndGlyphs");
-
-
-    // svg_g.selectAll("text.tiptext").remove();
-    // svg_g.append("text").attr("class","tiptext").append("tspan").attr("class","tiptspan")
-    //         .attr("x", width/2)
-    //         .attr('text-anchor', 'middle')
-    //         .text("xxx")
-    //         ;
-
-    // svg_g.selectAll("rect.stick").remove();
-    // svg_g.append("rect").attr("class","stick")
-    //         ;
+        .attr("d", "M0,0H0V"+height+"H0")
+        ;
 
 
     var words = svg_g.selectAll("text.word").data(data);
@@ -120,7 +102,7 @@ function dottedChart(data, id){
         .attr("y", function(d,i){return yScale(_.min([d.t_l_pct,d.t_r_pct]))})
         .attr("fill", function(d,i){return (d.sxl_pct>d.sxr_pct)?"green":((d.sxl_pct==d.sxr_pct)?"black":"blue")})
         .attr("font-size", "8")
-        .attr("opacity", d=>(1-d.a_pct**.25))
+        .attr("opacity", d=>(1-d.a_pct**.25))//
         ;
 
     var dots = svg_g.selectAll("circle.dot").data(data);
@@ -132,32 +114,29 @@ function dottedChart(data, id){
         .attr("cx", function(d,i){return xScale(_.max([d.sxl_pct,d.sxr_pct]))})
         .attr("cy", function(d,i){return yScale(_.min([d.t_l_pct,d.t_r_pct]))})
         .attr("fill", "black")
-        // .attr("width", function(d,i){if (d.timeFrom==d.timeTo){return 6}else{return Math.ceil(xScale(new Date(d.timeTo))-xScale(new Date(d.timeFrom)))}})
-        // .attr("height", yScale.bandwidth())
-        // .attr("fill", function(d,i){return cScale(d.type)})
         ;
-    // dots.on('mouseover', function(d,i){
-    //     svg_g.selectAll("text.tiptext")
-    //         .classed("shown", true)
-    //         ;
-    //     svg_g.selectAll("tspan.tiptspan")
-    //         .text(d.timeDisplay+"："+d.event)
-    //         ;
-    //     svg_g.selectAll("rect.stick")
-    //         .attr("x", xScale(new Date(d.timeFrom)))
-    //         .attr("y", yScale(d.type)+yScale.bandwidth())
-    //         .attr("width", "1")
-    //         .attr("height", height-yScale(d.type)-yScale.bandwidth())
-    //         .classed("shown", true)
-    //         ;
-    // });
-    // dots.on('mouseout', function(d,i){
-    //     svg_g.selectAll("text.tiptext")
-    //         .classed("shown", false)
-    //         ;
-    //     svg_g.selectAll("rect.stick")
-    //         .classed("shown", false)
-    //         ;
-    // });
+        // dots.on('mouseover', function(d,i){
+        //     svg_g.selectAll("text.tiptext")
+        //         .classed("shown", true)
+        //         ;
+        //     svg_g.selectAll("tspan.tiptspan")
+        //         .text(d.timeDisplay+"："+d.event)
+        //         ;
+        //     svg_g.selectAll("rect.stick")
+        //         .attr("x", xScale(new Date(d.timeFrom)))
+        //         .attr("y", yScale(d.type)+yScale.bandwidth())
+        //         .attr("width", "1")
+        //         .attr("height", height-yScale(d.type)-yScale.bandwidth())
+        //         .classed("shown", true)
+        //         ;
+        // });
+        // dots.on('mouseout', function(d,i){
+        //     svg_g.selectAll("text.tiptext")
+        //         .classed("shown", false)
+        //         ;
+        //     svg_g.selectAll("rect.stick")
+        //         .classed("shown", false)
+        //         ;
+        // });
 
 }
