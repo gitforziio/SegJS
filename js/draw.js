@@ -36,6 +36,20 @@ function dottedChart(data, id){
 
 
 
+
+
+
+    var oScale;
+    oScale = d3.scaleLog()
+        .range([0.25, 1])
+        .domain([d3.min(data, d=>d.str_frq), d3.max(data, d=>d.str_frq)])
+        ;
+
+
+
+
+
+
     //-MAIN--------------------------------------------------------------------//
     var theid = "#"+id;
     var svgid = theid+" svg";
@@ -89,19 +103,6 @@ function dottedChart(data, id){
     svg_x_axis.select(".domain")
         .attr("d", "M0,1V0H"+width+"V0");
 
-    svg_x_axis1 = svg_x_axis.clone(true)
-        ;
-    svg_x_axis.selectAll("path,line")
-        .attr("stroke", "white")
-        .attr("stroke-width", 3)
-        ;
-    svg_x_axis.selectAll("text")
-        .attr("stroke", "white")
-        .attr("fill", "white")
-        .attr("stroke-width", 3)
-        ;
-
-
     var svg_y_axis;
     svg_y_axis = svg_g.selectAll("g.axis.y-axis");
     svg_y_axis.remove();
@@ -117,6 +118,18 @@ function dottedChart(data, id){
         ;
     svg_y_axis.select(".domain")
         .attr("d", "M0,0H0V"+height+"H0")
+        ;
+
+    svg_x_axis1 = svg_x_axis.clone(true)
+        ;
+    svg_x_axis.selectAll("path,line")
+        .attr("stroke", "white")
+        .attr("stroke-width", 3)
+        ;
+    svg_x_axis.selectAll("text")
+        .attr("stroke", "white")
+        .attr("fill", "white")
+        .attr("stroke-width", 3)
         ;
 
     svg_y_axis1 = svg_y_axis.clone(true)
@@ -142,7 +155,8 @@ function dottedChart(data, id){
         .attr("fill", function(d,i){return (d.sxl_pct>d.sxr_pct)?"green":((d.sxl_pct==d.sxr_pct)?"black":"blue")})
         .attr("font-size", "8")
         // .attr("opacity", d=>(1-d.a_pct))//
-        .attr("opacity", d=>(1-d.a_pct**.5))//
+        // .attr("opacity", d=>(1-d.a_pct**.5))//
+        .attr("opacity", d=>oScale(d.str_frq))//
         ;
 
     var dots = svg_g_g.selectAll("circle.dot").data(data);
