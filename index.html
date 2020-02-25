@@ -170,7 +170,7 @@
             myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
             time_start = _.now();
             var the_text_len = the_text.replace(/([\n\r\s\t]+)/g,' ').trim().length;
-            var msg1 = `文本长度：【${the_text_len}】；现在是【${time_start}】；开始统计，请耐心等待……`;
+            var msg1 = `文本长度：【${the_text_len}】；开始统计，请耐心等待……`;
             console.log(msg1);
             d3.selectAll(`#output *`).remove();
             d3.select(`#output`).append("p").text(`${msg1}`);
@@ -179,7 +179,7 @@
                     time_end = _.now();
                     // console.log(time_end);
                     d3.selectAll(`#output *`).remove();
-                    msg2 = `统计完毕！现在是【${time_end}】；共耗时：【${_.ceil((time_end-time_start)/1000,0)}】秒；均耗时：【${_.ceil(the_text_len/(time_end-time_start)*1000,2)}】字符/秒`;
+                    msg2 = `统计完毕！文本长度：【${the_text_len}】；共耗时：【${_.ceil((time_end-time_start)/1000,0)}】秒；均耗时：【${_.ceil(the_text_len/(time_end-time_start)*1000,2)}】字符/秒`;
                     console.log(msg2);
                     d3.select(`#output`).append("p").text(msg2);
                     // time_show_start = _.now();

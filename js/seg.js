@@ -101,6 +101,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     var counts1 = _.countBy(mainDict, d=>`${d.str}※${d.ctx}`);
 
     mainDict = _.uniqBy(mainDict, d=>`${d.str}※${d.ctx}`);
+    // mainDict = _.uniqBy(mainDict, d=>`${d.s_l}※${d.str}※${d.s_r}`);
 
     mainDict = _.forEach(mainDict,function(d,i){
         let counts_str = counts[d.str];
@@ -132,7 +133,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     //**------------------------------------------------------------**//
 
     var strDict = _.cloneDeep(mainDict);
-    strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>=vapct)?(d.a_pct+"※"+d.ctx):(d.a_pct)}`);
+    strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>=vapct)?(_.ceil(d.a_pct,3)+"※"+d.ctx):(_.ceil(d.a_pct,3))}`);
     // strDict = _.forEach(strDict, function(d,i) {strDict[i]=_.pick(strDict[i], ['str','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str_frq','a_pct']);});
     strDict = _.orderBy(strDict, ['str_frq','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str'], ['desc','asc','asc','desc','desc','asc']);
 
