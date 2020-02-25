@@ -162,15 +162,22 @@ function dottedChart(data, id){
         .extent([[0, 0], [width, height]])
         .scaleExtent([0.5, 16])
         .on("zoom", ()=>{
-            svg_g_g.attr("transform", d3.event.transform);
-            svg_x_axis.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
-            svg_x_axis1.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
-            svg_y_axis.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
-            svg_y_axis1.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
-            let k = d3.event.transform.k;
-            // words.attr("transform", `translate(${d3.event.transform.x},${d3.event.transform.y}),scale(${d3.event.transform.k*0.5})`);
-            words.attr("font-size", `${8/(k)+k*0.1}`);
-            dots.attr("r", `${1/(k)}`);
+            let t = d3.event.transform;
+            // svg_g_g.attr("transform", t);
+            svg_x_axis.call(xAxis.scale(t.rescaleX(xScale)));
+            svg_x_axis1.call(xAxis.scale(t.rescaleX(xScale)));
+            svg_y_axis.call(yAxis.scale(t.rescaleY(yScale)));
+            svg_y_axis1.call(yAxis.scale(t.rescaleY(yScale)));
+            words
+                .attr("transform", t)
+                // .attr("transform-origin", `50% 50%`)
+                .attr("font-size", `${8/(t.k)+t.k*0.1}`)
+                ;
+            dots
+                .attr("transform", t)
+                // .attr("transform-origin", `50% 50%`)
+                .attr("r", `${1/(t.k)}`)
+                ;
             svg_x_axis.selectAll("path,line")
                 .attr("stroke", "white")
                 .attr("stroke-width", 3)
