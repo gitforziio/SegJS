@@ -1,10 +1,10 @@
 function dottedChart(data, id){
 
 
-    data.forEach((d,i)=>{
-        data[i].t_l_pct=Math.log(data[i].t_l_pct);
-        data[i].t_r_pct=Math.log(data[i].t_r_pct);
-    });
+    // data.forEach((d,i)=>{
+    //     data[i].t_l_pct=Math.log(data[i].t_l_pct);
+    //     data[i].t_r_pct=Math.log(data[i].t_r_pct);
+    // });
 
 
     var margin = {top: 50, right: 50, bottom: 50, left: 50},
@@ -18,9 +18,9 @@ function dottedChart(data, id){
         ;
 
     var yScale;
-    yScale = d3.scaleLinear()
+    yScale = d3.scaleLog()
         .range([0, height])
-        .domain([d3.max(data, d=>_.min([d.t_l_pct,d.t_r_pct]))+0.06, d3.min(data, d=>_.min([d.t_l_pct,d.t_r_pct]))-0.06])
+        .domain([d3.max(data, d=>_.min([d.t_l_pct,d.t_r_pct])), d3.min(data, d=>_.min([d.t_l_pct,d.t_r_pct]))])
         // .domain([d3.min(data, d=>d.t_l_pct)-0.1, d3.max(data, d=>d.t_l_pct)+0.1])
         ;
 
@@ -41,20 +41,34 @@ function dottedChart(data, id){
     var the_svg = d3.select(svgid);
     var svg;
     var svg_g;
+    var svg_g_g;
     var svg_levels;
 
     if (the_svg._groups[0][0] === null){
         console.log('the_svg does not exists!');
         svg = d3.select(theid).append("svg")
             .attr("viewBox", "0,0,"+(width + margin.left + margin.right).toString()+","
-                    +(height + margin.top + margin.bottom).toString()+"");
+                    +(height + margin.top + margin.bottom).toString()+"")
+            ;
         svg_g = svg.append("g")
             .attr("class", "mainchart")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr("transform", `translate(${margin.left},${margin.top})`)
+            ;
+        svg_g.append("rect")
+            .attr("transform", `translate(-${margin.left},-${margin.top})`)
+            .attr("width", `${width + margin.left + margin.right}`)
+            .attr("height", `${height + margin.top + margin.bottom}`)
+            .attr("fill", "#fafafa")
+            // .attr("fill", "transparent")
+            ;
+        svg_g_g = svg_g.append("g")
+            .attr("class", "mainfigure")
+            ;
     } else {
         console.log('the_svg exists!');
         svg = the_svg;
         svg_g = svg.select("g.mainchart");
+        svg_g_g = svg.select("g.mainfigure");
     }
 
     var svg_x_axis;
@@ -93,7 +107,7 @@ function dottedChart(data, id){
         ;
 
 
-    var words = svg_g.selectAll("text.word").data(data);
+    var words = svg_g_g.selectAll("text.word").data(data);
     words.exit().remove();
     words = words.enter().append("text").merge(words)
         .text(function(d,i){return d.str})
@@ -102,10 +116,11 @@ function dottedChart(data, id){
         .attr("y", function(d,i){return yScale(_.min([d.t_l_pct,d.t_r_pct]))})
         .attr("fill", function(d,i){return (d.sxl_pct>d.sxr_pct)?"green":((d.sxl_pct==d.sxr_pct)?"black":"blue")})
         .attr("font-size", "8")
-        .attr("opacity", d=>(1-d.a_pct**.25))//
+        // .attr("opacity", d=>(1-d.a_pct))//
+        .attr("opacity", d=>(1-d.a_pct**.5))//
         ;
 
-    var dots = svg_g.selectAll("circle.dot").data(data);
+    var dots = svg_g_g.selectAll("circle.dot").data(data);
     dots.exit().remove();
     dots = dots.enter().append("circle").merge(dots)
         .attr("class", function(d,i){if(0){return"dot dot-highlight"}else{return"dot"}})
@@ -115,28 +130,50 @@ function dottedChart(data, id){
         .attr("cy", function(d,i){return yScale(_.min([d.t_l_pct,d.t_r_pct]))})
         .attr("fill", "black")
         ;
-        // dots.on('mouseover', function(d,i){
-        //     svg_g.selectAll("text.tiptext")
-        //         .classed("shown", true)
-        //         ;
-        //     svg_g.selectAll("tspan.tiptspan")
-        //         .text(d.timeDisplay+"："+d.event)
-        //         ;
-        //     svg_g.selectAll("rect.stick")
-        //         .attr("x", xScale(new Date(d.timeFrom)))
-        //         .attr("y", yScale(d.type)+yScale.bandwidth())
-        //         .attr("width", "1")
-        //         .attr("height", height-yScale(d.type)-yScale.bandwidth())
-        //         .classed("shown", true)
-        //         ;
-        // });
-        // dots.on('mouseout', function(d,i){
-        //     svg_g.selectAll("text.tiptext")
-        //         .classed("shown", false)
-        //         ;
-        //     svg_g.selectAll("rect.stick")
-        //         .classed("shown", false)
-        //         ;
-        // });
+
+
+
+    var zoom = d3.zoom()
+        .extent([[0, 0], [width, height]])
+        .scaleExtent([0.5, 16])
+        .on("zoom", ()=>{
+            svg_g_g.attr("transform", d3.event.transform);
+            svg_x_axis.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
+            svg_y_axis.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
+            // words.attr("transform", `translate(${d3.event.transform.x},${d3.event.transform.y}),scale(${d3.event.transform.k*0.5})`);
+            words.attr("font-size", `${8/(d3.event.transform.k)+d3.event.transform.k*0.1}`);
+            dots.attr("r", `${1/(d3.event.transform.k)}`)
+        })
+        ;
+
+    svg_g
+        .call(zoom)
+        // .call(zoom.transform, transform)
+        ;
+
+
+    // dots.on('mouseover', function(d,i){
+    //     svg_g.selectAll("text.tiptext")
+    //         .classed("shown", true)
+    //         ;
+    //     svg_g.selectAll("tspan.tiptspan")
+    //         .text(d.timeDisplay+"："+d.event)
+    //         ;
+    //     svg_g.selectAll("rect.stick")
+    //         .attr("x", xScale(new Date(d.timeFrom)))
+    //         .attr("y", yScale(d.type)+yScale.bandwidth())
+    //         .attr("width", "1")
+    //         .attr("height", height-yScale(d.type)-yScale.bandwidth())
+    //         .classed("shown", true)
+    //         ;
+    // });
+    // dots.on('mouseout', function(d,i){
+    //     svg_g.selectAll("text.tiptext")
+    //         .classed("shown", false)
+    //         ;
+    //     svg_g.selectAll("rect.stick")
+    //         .classed("shown", false)
+    //         ;
+    // });
 
 }
