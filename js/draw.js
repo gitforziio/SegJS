@@ -173,7 +173,7 @@ function dottedChart(data, id){
 
 
     var zoom = d3.zoom()
-        .extent([[0, 0], [width, height]])
+        .extent([[0-margin.left, 0-margin.top], [width+margin.right, height+margin.bottom]])
         .scaleExtent([0.5, 16])
         .on("zoom", ()=>{
             let t = d3.event.transform;

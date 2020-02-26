@@ -55,7 +55,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
 
     tcts.forEach((tct,tid)=>{
         let tct_len = tct.length;
-        for (let w = minwidth; w <= maxwidth; w++) {
+        for (let w = minwidth; w <= maxwidth+1; w++) {
             let range_len = (tct_len>each_size)?(each_size):(tct_len-w+1);
             for (let i = 0; i < range_len; i++) {
                 let i_w = i+w;
@@ -150,6 +150,8 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     //**------------------------------------------------------------**//
 
     wordDict = _.filter(strDict, function(d) { return (d.str.length>=vlen&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
+    // wordDict = _.filter(strDict, function(d) { return (d.str.length==1&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
+
     // wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.sxr_pct}※${d.t_l_pct}※${d.t_r_pct}`);
     wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
 

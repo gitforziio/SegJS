@@ -39,7 +39,7 @@
         /*#page-chartpad{max-height: 80vh;}*/
         #page-chartpad #chartpad {margin: 0 auto; text-align: center;}
         #chartpad svg {margin: 0 auto;}
-        #chartpad svg {max-height: 80vh;}
+        #chartpad svg {max-height: 90vh;}
     </style>
 
 
@@ -68,7 +68,7 @@
             <div class="col">
                 <div id="the-textarea-wrap">
                     <textarea class="form-control" id="the-textarea" rows="10">
-1，2，3，3中文中文中国人哈哈哈哈哈这是什么啊，吃葡萄不吐葡萄皮，不吃葡萄倒吐葡萄皮。
+1，2，3，3中文f 中文str中国人中文哈哈哈哈哈这是什么啊，吃葡萄不吐葡萄皮，不吃葡萄倒吐葡萄皮。
                     </textarea>
 <!--                     <textarea class="form-control" id="the-textarea" rows="10">
 今年上半年，我在人人网实习了一段时间，期间得到了很多宝贵的数据，并做了一些还算有意义的事情，在这里和大家一块儿分享。感谢人人网提供的数据与工作环境，感谢赵继承博士、詹卫东老师的支持和建议。在这项工作中，我得到了很多与众人交流的机会，特别感谢 OpenParty 、 TEDxBeijing 提供的平台。本文已发表在了《程序员》杂志，分上下两部分刊于 2012 年 7 月刊和 8 月刊，在此感谢卢鸫翔编辑的辛勤工作。由于众所周知的原因，《程序员》刊出的文章被和谐过（看到后面大家就自动地知道被和谐的内容是什么了），因而我决定把完整版发在 Blog 上，同时与更多的人一同分享。对此感兴趣的朋友可以给我发邮件继续交流。好了，开始说正文吧。
@@ -168,7 +168,8 @@
                 myWorker = new Worker("js/seg.js");
             };
 
-            myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
+            myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:8, expwin:4, dict:null});
+            // myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
             time_start = _.now();
             var the_text_len = the_text.replace(/([\n\r\s\t]+)/g,' ').trim().length;
             var msg1 = `文本长度：【${the_text_len}】；开始统计，请耐心等待……`;
