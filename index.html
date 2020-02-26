@@ -35,7 +35,7 @@
         .outputbox{font-size: 10px;}
         #the-textarea{font-size: 10px;}
         #output .form-control{font-size: 10px;}
-        #output textarea.wordlist{height: 80vh;}
+        #output textarea.wordlist{height: 40vh;}
         /*#page-chartpad{max-height: 80vh;}*/
         #page-chartpad #chartpad {margin: 0 auto; text-align: center;}
         #chartpad svg {margin: 0 auto;}
@@ -115,6 +115,12 @@
                 <div id="output"></div>
             </div>
         </div>
+    </div></div>
+
+    <div class="container my-5 page hiddent" id="page-seggededed"><div class="container py-5">
+        <div class="row"><div class="col">
+            <div id="seggededed"></div>
+        </div></div>
     </div></div>
 
     <!-- <div class="container my-5 page hiddent" id="page-editing"><div class="container py-5"><div id="box-editing"><sentence-control v-for="S in Ss" :key="S.id" :S="S"></sentence-control>
@@ -201,6 +207,35 @@
                     // msg4 = `读取并呈现完毕！现在是【${time_show_end}】；耗时：【${_.ceil((time_show_end-time_show_start)/1000,0)}】秒`;
                     // console.log(msg4);
                     // myWorker.terminate();
+                } else if (event.data.stage=='SEG!!!') {
+                    // d3.selectAll(`#output *`).remove();
+                    console.log(`【stage: ${event.data.stage}】`);
+                    var sedded_box = d3.select(`#seggededed`).append("div").attr("id","sedded_box");
+                    var tvts = event.data.data;
+                    console.log(tvts);
+                    var ps = sedded_box.selectAll('p.tvt').data(tvts);
+                    ps.exit().remove();
+                    ps = ps.enter().append("p").merge(ps)
+                        .classed("tvt",true)
+                        ;
+                    ps.nodes().forEach((node,i)=>{
+                        the_node = d3.select(node);
+                        spans = the_node.selectAll("span.str").data(tvts[i]);
+                        spans.exit().remove();
+                        spans = spans.enter().append("span").merge(spans)
+                        .classed("span",true)
+                        .text(d=>d.str)
+                        .style("margin-left", d=>{return d.pl>0?`0.25em`:`0`})
+                        .style("margin-right", d=>{return d.pr>0?`0.25em`:`0`})
+                        .style("border-top-left-radius", d=>{return d.pl>0?`0.5em`:`0`})
+                        .style("border-top-right-radius", d=>{return d.pr>0?`0.5em`:`0`})
+                        .style("border-bottom-left-radius", d=>{return d.pl>0?`0.5em`:`0`})
+                        .style("border-bottom-right-radius", d=>{return d.pr>0?`0.5em`:`0`})
+                        .style("border-left", d=>{return d.pl>0?`2px solid rgba(0,119,255,${d.pr*2/10+0.2})`:`none`})
+                        .style("border-right", d=>{return d.pr>0?`2px solid rgba(0,119,255,${d.pr*2/10+0.2})`:`none`})
+                        .style("opacity", d=>_.max([d.pl,d.pr])/5+0.2)
+                        ;
+                    });
                 } else {
                     // d3.selectAll(`#output *`).remove();
                     console.log(`【stage: ${event.data.stage}】`);

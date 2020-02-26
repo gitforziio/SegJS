@@ -6,6 +6,8 @@ self.addEventListener('message', function (e) {
     let e_data = e.data;
     let bbbb = string_statistics(e_data.txt, e_data.minwidth, e_data.maxwidth, e_data.expwin, e_data.dict);
     self.postMessage({stage:"result",data:bbbb});
+    let segged = seg(bbbb);
+    self.postMessage({stage:"segged",data:segged});
     // self.postMessage(e.data);
 }, false);
 
@@ -14,7 +16,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     let vapct = 0.075;  // >= 片段所在上下文占片段所有上下文的比例 至少达到多少时，视为一个实例（比如“的”所在片段过于灵活，就不考虑实例了）（决定了分词时要不要特别对待）
     let vlen = 2;       // >= 片段至少有几个字符
     let vvv0 = 3;       // >= 该片段在文档中至少出现多少次
-    let vvv1 = 0.85;     // <= 该片段在相同外部环境中最多占多大比例（越大，越有可能是词或短语内部的一部分，而不是独立的词）
+    let vvv1 = 0.7;     // <= 该片段在相同外部环境中最多占多大比例（越大，越有可能是词或短语内部的一部分，而不是独立的词）
     let vvv2 = 0.05;    // >= 内部首尾字用在该片段中的概率至少达到多少（越大，越粘合）
 
     // let vapct = 0.075;  // >= 片段所在上下文占片段所有上下文的比例 至少达到多少时，视为一个实例（比如“的”所在片段过于灵活，就不考虑实例了）（决定了分词时要不要特别对待）
@@ -139,9 +141,11 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     //**------------------------------------------------------------**//
 
     var strDict = _.cloneDeep(mainDict);
-    strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>=vapct)?(_.ceil(d.a_pct,3)+"※"+d.ctx):(_.ceil(d.a_pct,3))}`);
-    // strDict = _.forEach(strDict, function(d,i) {strDict[i]=_.pick(strDict[i], ['str','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str_frq','a_pct']);});
-    strDict = _.orderBy(strDict, ['str_frq','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str'], ['desc','asc','asc','desc','desc','asc']);
+    // strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>=vapct)?(_.ceil(d.a_pct,3)+"※"+d.ctx):(_.ceil(d.a_pct,3))}`);
+
+    // // strDict = _.forEach(strDict, function(d,i) {strDict[i]=_.pick(strDict[i], ['str','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str_frq','a_pct']);});
+
+    // strDict = _.orderBy(strDict, ['str_frq','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str'], ['desc','asc','asc','desc','desc','asc']);
 
 
     postMessage({stage:"strDict",data:`strDict.length: ${strDict.length}`});
@@ -153,7 +157,7 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     // wordDict = _.filter(strDict, function(d) { return (d.str.length==1&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
 
     // wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.sxr_pct}※${d.t_l_pct}※${d.t_r_pct}`);
-    wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
+    // wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
 
     postMessage({stage:"wordDict",data:`wordDict.length: ${wordDict.length}`});
 
@@ -218,145 +222,28 @@ function txt2tcts(txt, each_size, width) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function countedcontexts(list) {
-    if(list.length==0){console.log("开始时已经有空数组了");};
-
-    let dct = {};
-    list.forEach((item)=>{
-        item = String(item);
-        if(item in dct){
-            dct[item]++;
-        } else {
-            dct[item] = 1;
-        }
+function seg(dictSet) {
+    var tcts = dictSet.inputs.tcts;
+    var tvts = [];
+    tcts.forEach(tct=>{
+        let tvt = [];
+        tct = tct.split("");
+        tct.forEach((t,i)=>{tvt.push({str:t, pl:0, pr:0})})
+        tvts.push(tvt);
     });
-    var ctd = [];
-    // console.log(Object.keys(dct));
-    Object.keys(dct).forEach((k,i)=>{
-        ctd.push({
-            context: k,
-            contextREG: _.escapeRegExp(k),
-            len: k.length,
-            freq: dct[k],
-        });
-    })
-
-    if(ctd.length==0){console.log("结束时有空数组");};
-    return ctd;
-}
-
-function counteddictlist(list) {
-
-    let dct = {};
-    list.forEach((item)=>{
-        if(item.str in dct){
-            dct[item.str].push(item.context);
-        } else {
-            dct[item.str] = [item.context];
-        }
+    var wds = dictSet.wordDict;
+    wds.forEach(wd=>{
+        tvts[wd.tid][wd.str_slice_start].pl+=1;
+        tvts[wd.tid][wd.str_slice_start+wd.str.length-1].pr+=1;
     });
-    var ctd = [];
-    Object.keys(dct).forEach((k,i)=>{
-        // let contexts = dct2[k];
-        let contexts = countedcontexts(dct[k]);
-        if(contexts.length==0){console.log("调用后出现空数组");};
-        // contexts.sort(function(a,b){
-        //     var result;
-        //     result = b.freq-a.freq;
-        //     // result = (result==0)?(b.len-a.len):result;
-        //     return result;
-        // });
-        ctd.push({
-            string: k,
-            len: k.length,
-            frequency: dct[k].length,
-            frequency_clear: dct[k].length,
-            contexts: contexts,
-            pro: "counteddictlist",
-        });
-    })
-
-    return ctd;
+    // tvts.forEach((tvt,i)=>{
+    //     // tvts[i]=tvts[i].slice();
+    //     tvts[i]=tvts[i].join("");
+    // });
+    postMessage({stage:"SEG!!!",data:tvts});
 }
 
-function mergeDict(l1,l2) {
-    // 看看 mainDict 里有没有 string 为 str 的项目，如果有，该项目的 frequency 加 1 。
-    return l2;
-}
 
-function reduceDict(lst) {
-    console.log("reduceDict");
-    var anotherList = lst;
-    anotherList.sort(function(a,b){
-        var result;
-        result = b.len-a.len;
-        if (result==0) {result = b.frequency-a.frequency};
-        return result;
-    });
-
-    // 在 列表 中 遍历 片段甲 和 片段乙
-    for (let i = 0; i < anotherList.length-1; i++) {
-        for (let j = i+1; j < anotherList.length; j++) {
-        // for (let j = i+1; j < anotherList.length; j++) {
-
-            // console.log("reduceDict2");
-            // let a = anotherList[i];// 片段甲
-            // let b = anotherList[j];// 片段乙
-
-            // if (a.len<b.len) {
-            //     let c = a; a = b; b = c;
-            // }
-
-            // 如果（在 片段甲 中 找得到 片段乙，并且 片段甲 长于 片段乙）那么
-            if (anotherList[i].len>anotherList[j].len && anotherList[i].string.search(_.escapeRegExp(anotherList[j].string))) {
-
-                // 片段甲的语境清单为清单甲，片段乙中的语境清单为清单乙
-                let ctxts_a = anotherList[i].contexts;// 清单甲
-                let ctxts_b = anotherList[j].contexts;// 清单乙
-
-                // 在 清单甲 中 遍历 甲语境；在 清单乙 中 遍历 乙语境
-                for (let ii = 0; ii < ctxts_a.length; ii++) {
-                    for (let jj = 0; jj < ctxts_b.length; jj++) {
-
-                        let ctxt_a = ctxts_a[ii];// 甲语境
-                        let ctxt_b = ctxts_b[jj];// 乙语境
-
-                        // 如果（在 甲语境 中 找得到 乙语境）那么
-                        if (ctxt_a.freq>0 && ctxt_b.freq>0 && ctxt_a.context.search(ctxt_b.contextREG)>=0) {
-                            ctxts_b[jj].freq = ctxt_b.freq-ctxt_a.freq;//乙语境的数量 等于 乙语境的数量 减去 甲语境的数量
-                            // ctxt_b = ctxts_b[jj];
-                        }
-
-                    }
-                }
-                ctxts_b = ctxts_b.filter(function(boy){return(boy.freq>0);});// 过滤掉 清单乙 中 频率消失的 语境
-                // console.log(ctxts_b);
-                anotherList[j].contexts = ctxts_b;
-                anotherList[j].frequency_clear = ctxts_b.length;
-                anotherList[j].pro = "reduceDict";
-            }
-        }
-    }
-
-    anotherList = anotherList.filter(function(boy){return(boy.contexts.length>0);});
-    return anotherList;
-
-}
 
 
 
