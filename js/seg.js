@@ -14,7 +14,7 @@ self.addEventListener('message', function (e) {
 function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
 
     let vapct = 0.075;  // >= 片段所在上下文占片段所有上下文的比例 至少达到多少时，视为一个实例（比如“的”所在片段过于灵活，就不考虑实例了）（决定了分词时要不要特别对待）
-    let vlen = 2;       // >= 片段至少有几个字符
+    let vlen = 1;       // >= 片段至少有几个字符
     let vvv0 = 3;       // >= 该片段在文档中至少出现多少次
     let vvv1 = 0.7;     // <= 该片段在相同外部环境中最多占多大比例（越大，越有可能是词或短语内部的一部分，而不是独立的词）
     let vvv2 = 0.05;    // >= 内部首尾字用在该片段中的概率至少达到多少（越大，越粘合）
@@ -141,11 +141,11 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     //**------------------------------------------------------------**//
 
     var strDict = _.cloneDeep(mainDict);
-    // strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>=vapct)?(_.ceil(d.a_pct,3)+"※"+d.ctx):(_.ceil(d.a_pct,3))}`);
+    strDict = _.uniqBy(strDict, d=>`${d.str}※${(d.a_pct>=vapct)?(_.ceil(d.a_pct,3)+"※"+d.ctx):(_.ceil(d.a_pct,3))}`);
 
     // // strDict = _.forEach(strDict, function(d,i) {strDict[i]=_.pick(strDict[i], ['str','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str_frq','a_pct']);});
 
-    // strDict = _.orderBy(strDict, ['str_frq','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str'], ['desc','asc','asc','desc','desc','asc']);
+    strDict = _.orderBy(strDict, ['str_frq','sxl_pct','sxr_pct','t_l_pct','t_r_pct','str'], ['desc','asc','asc','desc','desc','asc']);
 
 
     postMessage({stage:"strDict",data:`strDict.length: ${strDict.length}`});
@@ -154,9 +154,10 @@ function string_statistics(txt, minwidth, maxwidth, expwin, dict) {
     //**------------------------------------------------------------**//
 
     wordDict = _.filter(strDict, function(d) { return (d.str.length>=vlen&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
+    // wordDict = _.filter(strDict, function(d) { return (d.a_pct>=vapct)&&(d.str.length>=vlen&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
     // wordDict = _.filter(strDict, function(d) { return (d.str.length==1&&d.str_frq>=vvv0&&_.max([d.sxl_pct,d.sxr_pct])<=vvv1&&_.min([d.t_l_pct,d.t_r_pct])>=vvv2&&d.sxl_pct!=0&&d.sxr_pct!=0); });
 
-    // wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.sxr_pct}※${d.t_l_pct}※${d.t_r_pct}`);
+    wordDict = _.uniqBy(wordDict, d=>`${d.str}※${d.sxl_pct}※${d.sxr_pct}※${d.t_l_pct}※${d.t_r_pct}`);
     // wordDict = _.uniqBy(wordDict, d=>`${d.str}`);
 
     postMessage({stage:"wordDict",data:`wordDict.length: ${wordDict.length}`});

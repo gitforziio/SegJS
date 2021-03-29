@@ -50,7 +50,7 @@
 <div class="bodywrap">
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">SegJS</a><!-- 
+        <a class="navbar-brand" href="#">SegJS</a><!--
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#the_navbar_toggler" aria-controls="the_navbar_toggler" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -186,7 +186,7 @@
                 myWorker = new Worker("js/seg.js");
             };
 
-            myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:8, expwin:4, dict:null});
+            myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:4, expwin:2, dict:null});
             // myWorker.postMessage({txt:the_text, minwidth:1, maxwidth:6, expwin:4, dict:null});
             time_start = _.now();
             var the_text_len = the_text.replace(/([\n\r\s\t]+)/g,' ').trim().length;
@@ -208,9 +208,9 @@
                     data = event.data.data;
                     dottedChart(data.wordDict, "chartpad");
                     console.log(data);
-                    var jjj = JSON.stringify(data);
+                    var jjj = JSON.stringify(data, null, 2);
                     var wD = _.cloneDeep(data.wordDict);
-                    var jjjjj = _.forEach(wD,(d,i)=>{wD[i]=wD[i]['str']}).join('\n');
+                    var jjjjj = _.forEach(wD,(d,i)=>{wD[i]=`| ${wD[i]['str']} | ${wD[i]['str_frq']} | ${wD[i]['s_l']}${wD[i]['str']}${wD[i]['s_r']} | ${wD[i]['sxl_frq']} | ${wD[i]['sxr_frq']} | ${wD[i]['a_pct']} |`}).join('\n');
                     d3.selectAll(`#output *`).remove();
                     d3.select(`#output`).append("p").text(msg2);
                     d3.select(`#output`).append("textarea").classed("form-control",true).classed("wordlist",true).text(jjjjj);
@@ -222,32 +222,32 @@
                 } else if (event.data.stage=='SEG!!!') {
                     // d3.selectAll(`#output *`).remove();
                     console.log(`【stage: ${event.data.stage}】`);
-                    var sedded_box = d3.select(`#seggededed`).append("div").attr("id","sedded_box");
-                    var tvts = event.data.data;
-                    console.log(tvts);
-                    var ps = sedded_box.selectAll('p.tvt').data(tvts);
-                    ps.exit().remove();
-                    ps = ps.enter().append("p").merge(ps)
-                        .classed("tvt",true)
-                        ;
-                    ps.nodes().forEach((node,i)=>{
-                        the_node = d3.select(node);
-                        spans = the_node.selectAll("span.str").data(tvts[i]);
-                        spans.exit().remove();
-                        spans = spans.enter().append("span").merge(spans)
-                        .classed("span",true)
-                        .text(d=>d.str)
-                        .style("margin-left", d=>{return d.pl>0?`0.25em`:`0`})
-                        .style("margin-right", d=>{return d.pr>0?`0.25em`:`0`})
-                        .style("border-top-left-radius", d=>{return d.pl>0?`0.5em`:`0`})
-                        .style("border-top-right-radius", d=>{return d.pr>0?`0.5em`:`0`})
-                        .style("border-bottom-left-radius", d=>{return d.pl>0?`0.5em`:`0`})
-                        .style("border-bottom-right-radius", d=>{return d.pr>0?`0.5em`:`0`})
-                        .style("border-left", d=>{return d.pl>0?`2px solid rgba(0,119,255,${d.pr*2/10+0.2})`:`none`})
-                        .style("border-right", d=>{return d.pr>0?`2px solid rgba(0,119,255,${d.pr*2/10+0.2})`:`none`})
-                        .style("opacity", d=>_.max([d.pl,d.pr])/5+0.2)
-                        ;
-                    });
+                    // var sedded_box = d3.select(`#seggededed`).append("div").attr("id","sedded_box");
+                    // var tvts = event.data.data;
+                    // console.log(tvts);
+                    // var ps = sedded_box.selectAll('p.tvt').data(tvts);
+                    // ps.exit().remove();
+                    // ps = ps.enter().append("p").merge(ps)
+                    //     .classed("tvt",true)
+                    //     ;
+                    // ps.nodes().forEach((node,i)=>{
+                    //     the_node = d3.select(node);
+                    //     spans = the_node.selectAll("span.str").data(tvts[i]);
+                    //     spans.exit().remove();
+                    //     spans = spans.enter().append("span").merge(spans)
+                    //     .classed("span",true)
+                    //     .text(d=>d.str)
+                    //     .style("margin-left", d=>{return d.pl>0?`0.25em`:`0`})
+                    //     .style("margin-right", d=>{return d.pr>0?`0.25em`:`0`})
+                    //     .style("border-top-left-radius", d=>{return d.pl>0?`0.5em`:`0`})
+                    //     .style("border-top-right-radius", d=>{return d.pr>0?`0.5em`:`0`})
+                    //     .style("border-bottom-left-radius", d=>{return d.pl>0?`0.5em`:`0`})
+                    //     .style("border-bottom-right-radius", d=>{return d.pr>0?`0.5em`:`0`})
+                    //     .style("border-left", d=>{return d.pl>0?`2px solid rgba(0,119,255,${d.pr*2/10+0.2})`:`none`})
+                    //     .style("border-right", d=>{return d.pr>0?`2px solid rgba(0,119,255,${d.pr*2/10+0.2})`:`none`})
+                    //     .style("opacity", d=>_.max([d.pl,d.pr])/5+0.2)
+                    //     ;
+                    // });
                 } else {
                     // d3.selectAll(`#output *`).remove();
                     console.log(`【stage: ${event.data.stage}】`);
